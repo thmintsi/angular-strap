@@ -25,7 +25,8 @@ angular.module('mgcrea.ngStrap.select', ['mgcrea.ngStrap.tooltip', 'mgcrea.ngStr
       maxLength: 3,
       maxLengthHtml: 'selected',
       iconCheckmark: 'glyphicon glyphicon-ok',
-      toggle: false
+      toggle: false,
+      anchorSearchLevels: 3
     };
 
     this.$get = function ($window, $document, $rootScope, $tooltip, $timeout) {
@@ -185,6 +186,16 @@ angular.module('mgcrea.ngStrap.select', ['mgcrea.ngStrap.tooltip', 'mgcrea.ngStr
           return index;
         };
 
+        function findAnchorParent(targetEl){
+          var parentEl = targetEl.parent();
+          if (parentEl[0].nodeName === 'A'){
+            return parentEl;
+          }
+          else {
+            return undefined;
+          }
+        };
+
         $select.$onMouseDown = function (evt) {
           // Prevent blur on mousedown on .dropdown-menu
           evt.preventDefault();
@@ -192,7 +203,26 @@ angular.module('mgcrea.ngStrap.select', ['mgcrea.ngStrap.tooltip', 'mgcrea.ngStr
           // Emulate click for mobile devices
           if (isTouch) {
             var targetEl = angular.element(evt.target);
-            targetEl.triggerHandler('click');
+            var anchor;
+
+            if (evt.target.nodeName === 'A') {
+              anchor = targetEl;
+            }
+            else {
+              // search parents for the anchor element
+              var i = 0;
+              while (anchor === undefined && i < defaults.anchorSearchLevels) {
+                anchor = findAnchorParent(targetEl);
+                if ( anchor === undefined ){
+                  targetEl = targetEl.parent();
+                }
+                i++;
+              }
+            }
+
+            if (anchor !== null || anchor !== undefined) {
+              angular.element(anchor).triggerHandler('click');
+            }
           }
         };
 
